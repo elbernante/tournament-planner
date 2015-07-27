@@ -6,10 +6,15 @@
 -- You can write comments in this file by starting them with two dashes, like
 -- these lines here.
 
--- NOTE: This SQL file assumes that a clean database named 'tournament' already exists.
+-- NOTE: This assumes a database named 'tournament' does NOT already exist.
+--			If 'tournament' database already exists, comment out the
+--			`CREATE DATABASE tournament` statement.
+
+-- Create tournament database
+CREATE DATABASE tournament;
 
 -- Connect to tournament database
-\c tournament
+\c tournament;
 
 /**
   * Drop existing tables, triggers, and view if they already exists
