@@ -9,9 +9,11 @@ Tournament Planner: Full Stack Nano Degree Project 2
 import psycopg2
 
 
-def connect():
+def connect(database_name="tournament"):
     """Connect to the PostgreSQL database.  Returns a database connection."""
-    return psycopg2.connect("dbname=tournament")
+    db = psycopg2.connect("dbname={}".format(database_name))
+    cursor = db.cursor()
+    return db, cursor
 
 
 def deleteMatches(tournament_id=-1):
@@ -26,10 +28,10 @@ def deleteMatches(tournament_id=-1):
     query = "DELETE FROM match WHERE tournament_id = %s;"
 
     if tournament_id == -1:
-        query = "DELETE FROM match;"
+        query = "TRUNCATE match;"
 
-    conn = connect()
-    cur = conn.cursor()
+    conn, cur = connect()
+
     cur.execute(query, (tournament_id,))
     conn.commit()
 
@@ -48,8 +50,7 @@ def deletePlayers(tournament_id=-1):
 
     deleteMatches(tournament_id) # Matches should be deleted first before players can be deleted
 
-    conn = connect()
-    cur = conn.cursor()
+    conn, cur = connect()
 
     if tournament_id == -1:
         registry_query = "DELETE FROM registry WHERE player_id <> 0;"
@@ -78,8 +79,7 @@ def _deleteByePlayer(tournament_id=-1):
     if tournament_id == 0:
         raise ValueError("Cannot delete BYE player for default tournament.")
 
-    conn = connect()
-    cur = conn.cursor()
+    conn, cur = connect()
 
     registry_query = "DELETE FROM registry WHERE tournament_id = %s and player_id = 0;"
 
@@ -115,8 +115,8 @@ def deleteTournament(tournament_id=-1):
     if tournament_id == -1:
         query = "DELETE FROM tournament WHERE id <> 0;"
 
-    conn = connect()
-    cur = conn.cursor()
+    conn, cur = connect()
+
     cur.execute(query, (tournament_id,))
     conn.commit()
 
@@ -135,8 +135,7 @@ def newTournament(title):
 
     query = "INSERT INTO tournament (title) VALUES (%s) RETURNING id;"
 
-    conn = connect()
-    cur = conn.cursor()
+    conn, cur = connect()
 
     cur.execute(query, (title,))
     conn.commit()
@@ -158,8 +157,7 @@ def getTournaments():
         title: the title of the tournament
     """
 
-    conn = connect()
-    cur = conn.cursor()
+    conn, cur = connect()
 
     cur.execute("SELECT id, title FROM tournament;")
     result = cur.fetchall()
@@ -179,8 +177,7 @@ def countPlayers(tournament_id=0):
 
     query = "SELECT count(*) FROM registry WHERE tournament_id = %s AND player_id <> 0 GROUP BY tournament_id;"
 
-    conn = connect()
-    cur = conn.cursor()
+    conn, cur = connect()
 
     cur.execute(query, (tournament_id,))
     result = cur.fetchone()
@@ -205,8 +202,7 @@ def addPlayer(name):
 
     query = "INSERT INTO player (name) VALUES (%s) RETURNING id;"
 
-    conn = connect()
-    cur = conn.cursor()
+    conn, cur = connect()
 
     cur.execute(query, (name,))
     conn.commit()
@@ -229,8 +225,7 @@ def registerPlayerInTournament(player_id, tournament_id=0):
 
     query = "INSERT INTO registry (tournament_id, player_id) VALUES (%s, %s);"
 
-    conn = connect()
-    cur = conn.cursor()
+    conn, cur = connect()
 
     cur.execute(query, (tournament_id, player_id))
     conn.commit()
@@ -272,8 +267,7 @@ def playerStandings(tournament_id=0):
 
     query = "SELECT player_id, name, wins, matches FROM player_standing WHERE tournament_id = %s;"
 
-    conn = connect()
-    cur = conn.cursor()
+    conn, cur = connect()
 
     cur.execute(query, (tournament_id,))
     result = cur.fetchall()
@@ -297,8 +291,7 @@ def reportMatch(winner, loser, isDraw=False, tournament_id=0):
 
     query = "INSERT INTO match (tournament_id, player_id_1, player_id_2, winner) VALUES (%s, %s, %s, %s);"
 
-    conn = connect()
-    cur = conn.cursor()
+    conn, cur = connect()
 
     cur.execute(query, (tournament_id, winner, loser, -1 if isDraw else winner))
     conn.commit()
@@ -328,8 +321,7 @@ def swissPairings(tournament_id=0):
 
     query = "SELECT player_id_1, player_name_1, player_id_2, player_name_2 FROM swiss_pair WHERE tournament_id = %s;"
 
-    conn = connect()
-    cur = conn.cursor()
+    conn, cur = connect()
 
     cur.execute(query, (tournament_id,))
     result = cur.fetchall()

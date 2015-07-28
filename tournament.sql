@@ -12,6 +12,7 @@
 --			uncomment the DROP statements for views, trigger, and table.
 
 -- Create tournament database
+DROP DATABASE IF EXISTS tournament;
 CREATE DATABASE tournament;
 
 -- Connect to tournament database

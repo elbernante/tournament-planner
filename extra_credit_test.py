@@ -47,7 +47,7 @@ def testPreventRematch():
     else:
         raise ValueError("Players should not be able to rematch.")
 
-    print "1. Players can match against each against other only once."
+    print "1. Players can match against each other only once."
 
 def testOddNumberOfPlayers():
     deleteMatches()
@@ -128,7 +128,7 @@ def testEqualNumberOfWins():
 
     if sid1 != id1:
         raise ValueError("Player with the most number of wins should be ranked 1st.")
-    # id3 and id4 has the same number of wins, but OMW of id3 is 3, and OMW of id2 is 1
+    # id3 and id4 has the same number of wins, but OMW of id3 is 3, and OMW of id4 is 1
     if sid2 != id3:
         raise ValueError("If players have equal number of wins, the player who has more total number of wins of opponents should be ranked higher.")
     if sid3 != id4:
