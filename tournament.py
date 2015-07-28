@@ -52,18 +52,122 @@ def deletePlayers(tournament_id=-1):
     cur = conn.cursor()
 
     if tournament_id == -1:
-        registry_query = "DELETE FROM registry;"
-        player_query = "DELETE FROM player;"
+        registry_query = "DELETE FROM registry WHERE player_id <> 0;"
+        player_query = "DELETE FROM player WHERE id <> 0;"
         cur.execute(registry_query)
         cur.execute(player_query)
     else:
-        registry_query = "DELETE FROM registry WHERE tournament_id = %s;"
-        cur.execute(registry_query)
+        registry_query = "DELETE FROM registry WHERE tournament_id = %s and player_id <> 0;"
+        cur.execute(registry_query, (tournament_id,))
 
     conn.commit()
 
     cur.close()
     conn.close()
+
+def _deleteByePlayer(tournament_id=-1):
+    """Remove a bye player from a tournament.
+    NOTE: To be used only by deleteTournament() function when deleting a tournament.
+
+    Args:
+      tournament_id:    Optional. The ID of the tournament from where to delete the player.
+                        If tournament_id = -1, it deletes all the players in all tournaments.
+                        Default: -1.
+    """
+
+    if tournament_id == 0:
+        raise ValueError("Cannot delete BYE player for default tournament.")
+
+    conn = connect()
+    cur = conn.cursor()
+
+    registry_query = "DELETE FROM registry WHERE tournament_id = %s and player_id = 0;"
+
+    if tournament_id == -1:
+        registry_query = "DELETE FROM registry WHERE tournament_id <> 0 AND player_id = 0;"
+
+    cur.execute(registry_query, (tournament_id,))
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+def deleteTournament(tournament_id=-1):
+    """Removes all or a selected tournament.
+    NOTE: This will also delete matches and players registered to the tournament
+
+    Args:
+      tournament_id:    Optional. The ID of the tournament to delete.
+                        If tournament_id = -1, it deletes all tournaments.
+                        Default: -1.
+    """
+
+    if tournament_id == 0:
+        raise ValueError("Cannot delete default tournament.")
+
+    deleteMatches(tournament_id)    # clean up matches
+    deletePlayers(tournament_id)    # clean up registered players
+    _deleteByePlayer(tournament_id)
+
+    query = "DELETE FROM tournament WHERE id = %s;"
+
+    if tournament_id == -1:
+        query = "DELETE FROM tournament WHERE id <> 0;"
+
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute(query, (tournament_id,))
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+def newTournament(title):
+    """Creates new tournament in the database
+
+    Args:
+      title: Title of the new tournament
+
+    Returns:
+      ID of the the newly added tournament.
+    """
+
+    query = "INSERT INTO tournament (title) VALUES (%s) RETURNING id;"
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute(query, (title,))
+    conn.commit()
+
+    tournament_id = cur.fetchone()[0]
+
+    cur.close()
+    conn.close()
+
+    return tournament_id
+
+def getTournaments():
+    """Returns the list of tourn in the database.
+    Default tournament (id = 0) is always included in the result.
+
+    Returns:
+      A list of tuples, each of which contains (id, title):
+        id: the tournament's unique id (assigned by the database)
+        title: the title of the tournament
+    """
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("SELECT id, title FROM tournament;")
+    result = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return result
 
 def countPlayers(tournament_id=0):
     """Returns the number of players currently registered.
@@ -87,9 +191,16 @@ def countPlayers(tournament_id=0):
 
     return count
 
+
 def addPlayer(name):
     """Adds a player to the tournament databaase and returns the id.
     The added player is not yet registered to any tournament.
+
+    Args:
+      name:  Name of the player to be added.
+
+    Returns:
+      ID of the the newly added player.
     """
 
     query = "INSERT INTO player (name) VALUES (%s) RETURNING id;"
@@ -227,5 +338,3 @@ def swissPairings(tournament_id=0):
     conn.close()
 
     return result
-
-
