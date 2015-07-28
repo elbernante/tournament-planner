@@ -8,7 +8,8 @@
 
 -- NOTE: This assumes a database named 'tournament' does NOT already exist.
 --			If 'tournament' database already exists, comment out the
---			`CREATE DATABASE tournament` statement.
+--			`CREATE DATABASE tournament` statement,
+--			uncomment the DROP statements for views, trigger, and table.
 
 -- Create tournament database
 CREATE DATABASE tournament;
@@ -20,19 +21,19 @@ CREATE DATABASE tournament;
   * Drop existing tables, triggers, and view if they already exists
   */
 -- Drop views first, in this order:
-DROP VIEW IF EXISTS swiss_pair;
-DROP VIEW IF EXISTS player_standing;
-DROP VIEW IF EXISTS opponent_list;
-DROP VIEW IF EXISTS win_count;
+-- DROP VIEW IF EXISTS swiss_pair;
+-- DROP VIEW IF EXISTS player_standing;
+-- DROP VIEW IF EXISTS opponent_list;
+-- DROP VIEW IF EXISTS win_count;
 
 -- Drop triggers
-DROP TRIGGER IF EXISTS new_tournament ON tournament;
+-- DROP TRIGGER IF EXISTS new_tournament ON tournament;
 
 -- Drop tables in this order:
-DROP TABLE IF EXISTS match;
-DROP TABLE IF EXISTS registry;
-DROP TABLE IF EXISTS player;
-DROP TABLE IF EXISTS tournament;
+-- DROP TABLE IF EXISTS match;
+-- DROP TABLE IF EXISTS registry;
+-- DROP TABLE IF EXISTS player;
+-- DROP TABLE IF EXISTS tournament;
 
 
 -- Helper function to sort array
